@@ -9,6 +9,8 @@
 *..mxproject
 *.ini
 *.d
+*.ioc
+*.uvoptx
 
 
 # Object files

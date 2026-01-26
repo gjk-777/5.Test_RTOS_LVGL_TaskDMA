@@ -22,33 +22,33 @@
 #define __SPI_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-  /* USER CODE BEGIN Includes */
+/* USER CODE BEGIN Includes */
 
-  /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-  extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi1;
 
-  /* USER CODE BEGIN Private defines */
+/* USER CODE BEGIN Private defines */
   uint8_t spi_read_write_byte(uint8_t txbyte);
 
   void spi_set_speed(uint8_t speed);
-  /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
-  void MX_SPI1_Init(void);
+void MX_SPI1_Init(void);
 
-  /* USER CODE BEGIN Prototypes */
+/* USER CODE BEGIN Prototypes */
 
-  /* USER CODE END Prototypes */
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __SPI_H__ */
+
