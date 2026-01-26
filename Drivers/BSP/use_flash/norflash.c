@@ -25,6 +25,10 @@
 #include "spi.h"
 #include "usart.h"
 #include "norflash.h"
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "task.h"
+#include "cmsis_os.h"
 
 #define SPI_SPEED_4 1
 uint16_t g_norflash_type = W25Q128; /* 默认是NM25Q128 */
@@ -457,7 +461,8 @@ void Test_w25q128_Flash_Run(void *pvParameters)
     uint16_t i;
     int error_count = 0;
     // Wait for system initialization
-    vTaskDelay(5000);
+    vTaskDelay(30000); // Wait 30s
+
     printf("\r\n===================================\r\n");
     printf("       W25Q128 Flash Test Start    \r\n");
     printf("===================================\r\n");
@@ -533,7 +538,6 @@ void Test_w25q128_Flash_Run(void *pvParameters)
 
 void Test_w25q128_Flash_Init(void)
 {
-    vTaskDelay(20 * 1000); // 等待，确保其他初始化完成
     norflash_init();
     xTaskCreate(Test_w25q128_Flash_Run, "Test_w25q128_Flash_Run", 256, NULL, 10, NULL);
 }

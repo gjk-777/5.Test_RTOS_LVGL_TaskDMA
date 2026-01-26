@@ -12,10 +12,11 @@
 #define TEST_FLASH_SECTOR_START 0x080E0000
 #define TEST_DATA_LEN 10 // Number of 32-bit words
 
-void Test_IAP_Flash_Run(void)
+void Test_IAP_Flash_Run(void *argument)
 {
-
+    vTaskDelay(pdMS_TO_TICKS(50000)); // Wait 50s before running test
     uint32_t write_data[TEST_DATA_LEN];
+
     uint32_t read_data[TEST_DATA_LEN];
     uint32_t address = TEST_FLASH_SECTOR_START;
     uint32_t result;
@@ -114,6 +115,5 @@ void Test_IAP_Flash_Run(void)
 
 void Test_IAP_Flash_Init(void)
 {
-    vTaskDelay(50 * 1000); // 等待，确保其他初始化完成
     xTaskCreate(Test_IAP_Flash_Run, "Test_IAP_Flash_Run", 256, NULL, 10, NULL);
 }
