@@ -13,6 +13,8 @@
 *.htm
 *.crf
 *.uvoptx
+*.uvprojx
+*.lnp
 
 
 # Object files

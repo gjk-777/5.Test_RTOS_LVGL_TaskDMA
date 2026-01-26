@@ -70,7 +70,7 @@ void User_Tasks_Init(void)
     }
 
     LvglTaskHandle = osThreadNew(Lvgl_Task, NULL, &LvglTask_attributes);
-    InfoTaskHandle = osThreadNew(Info_Task, NULL, &InfoTask_attributes);
+    // InfoTaskHandle = osThreadNew(Info_Task, NULL, &InfoTask_attributes);
     StopTaskHandle = osThreadNew(Stop_Task, NULL, &StopTask_attributes);
     // IWDGTaskHandle = osThreadNew(IWDG_Task, NULL, &IWDGTask_attributes);
     IdleEnterTaskHandle = osThreadNew(IdleEnter_Task, NULL, &IdleEnterTask_attributes);
