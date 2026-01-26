@@ -75,7 +75,7 @@ void User_Tasks_Init(void)
     // IWDGTaskHandle = osThreadNew(IWDG_Task, NULL, &IWDGTask_attributes);
     IdleEnterTaskHandle = osThreadNew(IdleEnter_Task, NULL, &IdleEnterTask_attributes);
     Test_IAP_Flash_Init();
-    Task_Tracker_Init();
+    Task_Tracker_Init(50 * 1000);
 }
 
 void Lvgl_Task(void *argument)

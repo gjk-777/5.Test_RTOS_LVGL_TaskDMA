@@ -49,6 +49,7 @@
 *.i*86
 *.x86_64
 *.hex
+*.axf
 
 # Debug files
 *.dSYM/
@@ -72,3 +73,8 @@ dkms.conf
 /ideScripts
 /MDK-ARM
 /FreeRTOSLVGL
+
+# Keil MDK
+*.uvguix.*
+*.dep
+*.build_log.htm
