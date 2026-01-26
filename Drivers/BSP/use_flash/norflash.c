@@ -26,8 +26,8 @@
 #include "usart.h"
 #include "norflash.h"
 
-#define SPI_SPEED_4         1
-uint16_t g_norflash_type = W25Q128;     /* 默认是NM25Q128 */
+#define SPI_SPEED_4 1
+uint16_t g_norflash_type = W25Q128; /* 默认是NM25Q128 */
 
 /**
  * @brief       初始化SPI NOR FLASH
@@ -38,7 +38,7 @@ void norflash_init(void)
 {
     uint8_t temp;
 
-    NORFLASH_CS_GPIO_CLK_ENABLE();      /* NORFLASH CS脚 时钟使能 */
+    NORFLASH_CS_GPIO_CLK_ENABLE(); /* NORFLASH CS脚 时钟使能 */
 
     GPIO_InitTypeDef gpio_init_struct;
     gpio_init_struct.Pin = NORFLASH_CS_GPIO_PIN;
@@ -47,30 +47,30 @@ void norflash_init(void)
     gpio_init_struct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(NORFLASH_CS_GPIO_PORT, &gpio_init_struct); /* CS引脚模式设置(复用输出) */
 
-    NORFLASH_CS(1);                         /* 取消片选 */
+    NORFLASH_CS(1); /* 取消片选 */
 
-  //  spi1_init();                            /* 初始化SPI1 */
-    spi_set_speed(SPI_SPEED_4);            /* SPI1 切换到高速状态 21Mhz */
-    
-    g_norflash_type = norflash_read_id();   /* 读取FLASH ID. */
-    
-    if (g_norflash_type == W25Q256)         /* SPI FLASH为W25Q256, 必须使能4字节地址模式 */
+    //  spi1_init();                            /* 初始化SPI1 */
+    spi_set_speed(SPI_SPEED_4); /* SPI1 切换到高速状态 21Mhz */
+
+    g_norflash_type = norflash_read_id(); /* 读取FLASH ID. */
+
+    if (g_norflash_type == W25Q256) /* SPI FLASH为W25Q256, 必须使能4字节地址模式 */
     {
-        temp = norflash_read_sr(3);         /* 读取状态寄存器3，判断地址模式 */
+        temp = norflash_read_sr(3); /* 读取状态寄存器3，判断地址模式 */
 
-        if ((temp & 0X01) == 0)             /* 如果不是4字节地址模式,则进入4字节地址模式 */
+        if ((temp & 0X01) == 0) /* 如果不是4字节地址模式,则进入4字节地址模式 */
         {
-            norflash_write_enable();        /* 写使能 */
-            temp |= 1 << 1;                 /* ADP=1, 上电4位地址模式 */
-            norflash_write_sr(3, temp);     /* 写SR3 */
-            
+            norflash_write_enable();    /* 写使能 */
+            temp |= 1 << 1;             /* ADP=1, 上电4位地址模式 */
+            norflash_write_sr(3, temp); /* 写SR3 */
+
             NORFLASH_CS(0);
-            spi_read_write_byte(FLASH_Enable4ByteAddr);    /* 使能4字节地址指令 */
+            spi_read_write_byte(FLASH_Enable4ByteAddr); /* 使能4字节地址指令 */
             NORFLASH_CS(1);
         }
     }
 
-    //printf("ID:%x\r\n", g_norflash_type);
+    // printf("ID:%x\r\n", g_norflash_type);
 }
 
 /**
@@ -80,7 +80,8 @@ void norflash_init(void)
  */
 static void norflash_wait_busy(void)
 {
-    while ((norflash_read_sr(1) & 0x01) == 0x01);   /* 等待BUSY位清空 */
+    while ((norflash_read_sr(1) & 0x01) == 0x01)
+        ; /* 等待BUSY位清空 */
 }
 
 /**
@@ -92,7 +93,7 @@ static void norflash_wait_busy(void)
 void norflash_write_enable(void)
 {
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_WriteEnable);   /* 发送写使能 */
+    spi_read_write_byte(FLASH_WriteEnable); /* 发送写使能 */
     NORFLASH_CS(1);
 }
 
@@ -104,13 +105,13 @@ void norflash_write_enable(void)
  */
 static void norflash_send_address(uint32_t address)
 {
-    if (g_norflash_type == W25Q256)                     /* 只有W25Q256支持4字节地址模式 */
+    if (g_norflash_type == W25Q256) /* 只有W25Q256支持4字节地址模式 */
     {
-        spi_read_write_byte((uint8_t)((address)>>24)); /* 发送 bit31 ~ bit24 地址 */
-    } 
-    spi_read_write_byte((uint8_t)((address)>>16));     /* 发送 bit23 ~ bit16 地址 */
-    spi_read_write_byte((uint8_t)((address)>>8));      /* 发送 bit15 ~ bit8  地址 */
-    spi_read_write_byte((uint8_t)address);             /* 发送 bit7  ~ bit0  地址 */
+        spi_read_write_byte((uint8_t)((address) >> 24)); /* 发送 bit31 ~ bit24 地址 */
+    }
+    spi_read_write_byte((uint8_t)((address) >> 16)); /* 发送 bit23 ~ bit16 地址 */
+    spi_read_write_byte((uint8_t)((address) >> 8));  /* 发送 bit15 ~ bit8  地址 */
+    spi_read_write_byte((uint8_t)address);           /* 发送 bit7  ~ bit0  地址 */
 }
 
 /**
@@ -141,28 +142,28 @@ uint8_t norflash_read_sr(uint8_t regno)
 
     switch (regno)
     {
-        case 1:
-            command = FLASH_ReadStatusReg1;  /* 读状态寄存器1指令 */
-            break;
+    case 1:
+        command = FLASH_ReadStatusReg1; /* 读状态寄存器1指令 */
+        break;
 
-        case 2:
-            command = FLASH_ReadStatusReg2;  /* 读状态寄存器2指令 */
-            break;
+    case 2:
+        command = FLASH_ReadStatusReg2; /* 读状态寄存器2指令 */
+        break;
 
-        case 3:
-            command = FLASH_ReadStatusReg3;  /* 读状态寄存器3指令 */
-            break;
+    case 3:
+        command = FLASH_ReadStatusReg3; /* 读状态寄存器3指令 */
+        break;
 
-        default:
-            command = FLASH_ReadStatusReg1;
-            break;
+    default:
+        command = FLASH_ReadStatusReg1;
+        break;
     }
 
     NORFLASH_CS(0);
-    spi_read_write_byte(command);      /* 发送读寄存器命令 */
-    byte = spi_read_write_byte(0Xff);  /* 读取一个字节 */
+    spi_read_write_byte(command);     /* 发送读寄存器命令 */
+    byte = spi_read_write_byte(0Xff); /* 读取一个字节 */
     NORFLASH_CS(1);
-    
+
     return byte;
 }
 
@@ -179,26 +180,26 @@ void norflash_write_sr(uint8_t regno, uint8_t sr)
 
     switch (regno)
     {
-        case 1:
-            command = FLASH_WriteStatusReg1;  /* 写状态寄存器1指令 */
-            break;
+    case 1:
+        command = FLASH_WriteStatusReg1; /* 写状态寄存器1指令 */
+        break;
 
-        case 2:
-            command = FLASH_WriteStatusReg2;  /* 写状态寄存器2指令 */
-            break;
+    case 2:
+        command = FLASH_WriteStatusReg2; /* 写状态寄存器2指令 */
+        break;
 
-        case 3:
-            command = FLASH_WriteStatusReg3;  /* 写状态寄存器3指令 */
-            break;
+    case 3:
+        command = FLASH_WriteStatusReg3; /* 写状态寄存器3指令 */
+        break;
 
-        default:
-            command = FLASH_WriteStatusReg1;
-            break;
+    default:
+        command = FLASH_WriteStatusReg1;
+        break;
     }
 
     NORFLASH_CS(0);
-    spi_read_write_byte(command);  /* 发送读寄存器命令 */
-    spi_read_write_byte(sr);       /* 写入一个字节 */
+    spi_read_write_byte(command); /* 发送读寄存器命令 */
+    spi_read_write_byte(sr);      /* 写入一个字节 */
     NORFLASH_CS(1);
 }
 
@@ -213,12 +214,12 @@ uint16_t norflash_read_id(void)
     uint16_t deviceid;
 
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_ManufactDeviceID);   /* 发送读 ID 命令 */
-    spi_read_write_byte(0);                        /* 写入一个字节 */
+    spi_read_write_byte(FLASH_ManufactDeviceID); /* 发送读 ID 命令 */
+    spi_read_write_byte(0);                      /* 写入一个字节 */
     spi_read_write_byte(0);
     spi_read_write_byte(0);
-    deviceid = spi_read_write_byte(0xFF) << 8;     /* 读取高8位字节 */
-    deviceid |= spi_read_write_byte(0xFF);         /* 读取低8位字节 */
+    deviceid = spi_read_write_byte(0xFF) << 8; /* 读取高8位字节 */
+    deviceid |= spi_read_write_byte(0xFF);     /* 读取低8位字节 */
     NORFLASH_CS(1);
 
     return deviceid;
@@ -237,14 +238,14 @@ void norflash_read(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
     uint16_t i;
 
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_ReadData);       /* 发送读取命令 */
-    norflash_send_address(addr);                /* 发送地址 */
-    
+    spi_read_write_byte(FLASH_ReadData); /* 发送读取命令 */
+    norflash_send_address(addr);         /* 发送地址 */
+
     for (i = 0; i < datalen; i++)
     {
-        pbuf[i] = spi_read_write_byte(0XFF);   /* 循环读取 */
+        pbuf[i] = spi_read_write_byte(0XFF); /* 循环读取 */
     }
-    
+
     NORFLASH_CS(1);
 }
 
@@ -260,19 +261,19 @@ static void norflash_write_page(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
 {
     uint16_t i;
 
-    norflash_write_enable();                    /* 写使能 */
+    norflash_write_enable(); /* 写使能 */
 
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_PageProgram);    /* 发送写页命令 */
-    norflash_send_address(addr);                /* 发送地址 */
+    spi_read_write_byte(FLASH_PageProgram); /* 发送写页命令 */
+    norflash_send_address(addr);            /* 发送地址 */
 
     for (i = 0; i < datalen; i++)
     {
-        spi_read_write_byte(pbuf[i]);          /* 循环读取 */
+        spi_read_write_byte(pbuf[i]); /* 循环读取 */
     }
-    
+
     NORFLASH_CS(1);
-    norflash_wait_busy();       /* 等待写入结束 */
+    norflash_wait_busy(); /* 等待写入结束 */
 }
 
 /**
@@ -289,9 +290,9 @@ static void norflash_write_page(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
 static void norflash_write_nocheck(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
 {
     uint16_t pageremain;
-    pageremain = 256 - addr % 256;  /* 单页剩余的字节数 */
+    pageremain = 256 - addr % 256; /* 单页剩余的字节数 */
 
-    if (datalen <= pageremain)      /* 不大于256个字节 */
+    if (datalen <= pageremain) /* 不大于256个字节 */
     {
         pageremain = datalen;
     }
@@ -303,34 +304,27 @@ static void norflash_write_nocheck(uint8_t *pbuf, uint32_t addr, uint16_t datale
          */
         norflash_write_page(pbuf, addr, pageremain);
 
-        if (datalen == pageremain)      /* 写入结束了 */
+        if (datalen == pageremain) /* 写入结束了 */
         {
             break;
         }
-        else                            /* datalen > pageremain */
+        else /* datalen > pageremain */
         {
-            pbuf += pageremain;         /* pbuf指针地址偏移,前面已经写了pageremain字节 */
-            addr += pageremain;         /* 写地址偏移,前面已经写了pageremain字节 */
-            datalen -= pageremain;      /* 写入总长度减去已经写入了的字节数 */
+            pbuf += pageremain;    /* pbuf指针地址偏移,前面已经写了pageremain字节 */
+            addr += pageremain;    /* 写地址偏移,前面已经写了pageremain字节 */
+            datalen -= pageremain; /* 写入总长度减去已经写入了的字节数 */
 
-            if (datalen > 256)          /* 剩余数据还大于一页,可以一次写一页 */
+            if (datalen > 256) /* 剩余数据还大于一页,可以一次写一页 */
             {
-                pageremain = 256;       /* 一次可以写入256个字节 */
+                pageremain = 256; /* 一次可以写入256个字节 */
             }
-            else                        /* 剩余数据小于一页,可以一次写完 */
+            else /* 剩余数据小于一页,可以一次写完 */
             {
-                pageremain = datalen;   /* 不够256个字节了 */
+                pageremain = datalen; /* 不够256个字节了 */
             }
         }
     }
 }
-
-
-
-
-
-
-
 
 /**
  * @brief       写SPI FLASH
@@ -343,7 +337,7 @@ static void norflash_write_nocheck(uint8_t *pbuf, uint32_t addr, uint16_t datale
  * @param       datalen : 要写入的字节数(最大65535)
  * @retval      无
  */
-uint8_t g_norflash_buf[4096];   /* 扇区缓存 */
+uint8_t g_norflash_buf[4096]; /* 扇区缓存 */
 
 void norflash_write(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
 {
@@ -354,64 +348,64 @@ void norflash_write(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
     uint8_t *norflash_buf;
 
     norflash_buf = g_norflash_buf;
-    secpos = addr / 4096;       /* 扇区地址 */
-    secoff = addr % 4096;       /* 在扇区内的偏移 */
-    secremain = 4096 - secoff;  /* 扇区剩余空间大小 */
+    secpos = addr / 4096;      /* 扇区地址 */
+    secoff = addr % 4096;      /* 在扇区内的偏移 */
+    secremain = 4096 - secoff; /* 扇区剩余空间大小 */
 
-    //printf("ad:%X,nb:%X\r\n", addr, datalen); /* 测试用 */
+    // printf("ad:%X,nb:%X\r\n", addr, datalen); /* 测试用 */
     if (datalen <= secremain)
     {
-        secremain = datalen;    /* 不大于4096个字节 */
+        secremain = datalen; /* 不大于4096个字节 */
     }
 
     while (1)
     {
-        norflash_read(norflash_buf, secpos * 4096, 4096);   /* 读出整个扇区的内容 */
+        norflash_read(norflash_buf, secpos * 4096, 4096); /* 读出整个扇区的内容 */
 
-        for (i = 0; i < secremain; i++)     /* 校验数据 */
+        for (i = 0; i < secremain; i++) /* 校验数据 */
         {
             if (norflash_buf[secoff + i] != 0XFF)
             {
-                break;                      /* 需要擦除, 直接退出for循环 */
+                break; /* 需要擦除, 直接退出for循环 */
             }
         }
 
-        if (i < secremain)                  /* 需要擦除 */
+        if (i < secremain) /* 需要擦除 */
         {
-            norflash_erase_sector(secpos);  /* 擦除这个扇区 */
+            norflash_erase_sector(secpos); /* 擦除这个扇区 */
 
             for (i = 0; i < secremain; i++) /* 复制 */
             {
                 norflash_buf[i + secoff] = pbuf[i];
             }
 
-            norflash_write_nocheck(norflash_buf, secpos * 4096, 4096);  /* 写入整个扇区 */
+            norflash_write_nocheck(norflash_buf, secpos * 4096, 4096); /* 写入整个扇区 */
         }
-        else    /* 写已经擦除了的,直接写入扇区剩余区间. */
+        else /* 写已经擦除了的,直接写入扇区剩余区间. */
         {
-            norflash_write_nocheck(pbuf, addr, secremain);              /* 直接写扇区 */
+            norflash_write_nocheck(pbuf, addr, secremain); /* 直接写扇区 */
         }
 
         if (datalen == secremain)
         {
-            break;  /* 写入结束了 */
+            break; /* 写入结束了 */
         }
-        else        /* 写入未结束 */
+        else /* 写入未结束 */
         {
-            secpos++;               /* 扇区地址增1 */
-            secoff = 0;             /* 偏移位置为0 */
+            secpos++;   /* 扇区地址增1 */
+            secoff = 0; /* 偏移位置为0 */
 
-            pbuf += secremain;      /* 指针偏移 */
-            addr += secremain;      /* 写地址偏移 */
-            datalen -= secremain;   /* 字节数递减 */
+            pbuf += secremain;    /* 指针偏移 */
+            addr += secremain;    /* 写地址偏移 */
+            datalen -= secremain; /* 字节数递减 */
 
             if (datalen > 4096)
             {
-                secremain = 4096;   /* 下一个扇区还是写不完 */
+                secremain = 4096; /* 下一个扇区还是写不完 */
             }
             else
             {
-                secremain = datalen;/* 下一个扇区可以写完了 */
+                secremain = datalen; /* 下一个扇区可以写完了 */
             }
         }
     }
@@ -425,48 +419,121 @@ void norflash_write(uint8_t *pbuf, uint32_t addr, uint16_t datalen)
  */
 void norflash_erase_chip(void)
 {
-    norflash_write_enable();    /* 写使能 */
-    norflash_wait_busy();       /* 等待空闲 */
+    norflash_write_enable(); /* 写使能 */
+    norflash_wait_busy();    /* 等待空闲 */
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_ChipErase);  /* 发送读寄存器命令 */ 
+    spi_read_write_byte(FLASH_ChipErase); /* 发送读寄存器命令 */
     NORFLASH_CS(1);
-    norflash_wait_busy();       /* 等待芯片擦除结束 */
+    norflash_wait_busy(); /* 等待芯片擦除结束 */
 }
 
 /**
  * @brief       擦除一个扇区
  *   @note      注意,这里是扇区地址,不是字节地址!!
  *              擦除一个扇区的最少时间:150ms
- * 
+ *
  * @param       saddr : 扇区地址 根据实际容量设置
  * @retval      无
  */
 void norflash_erase_sector(uint32_t saddr)
 {
-    //printf("fe:%x\r\n", saddr);   /* 监视falsh擦除情况,测试用 */
+    // printf("fe:%x\r\n", saddr);   /* 监视falsh擦除情况,测试用 */
     saddr *= 4096;
-    norflash_write_enable();        /* 写使能 */
-    norflash_wait_busy();           /* 等待空闲 */
+    norflash_write_enable(); /* 写使能 */
+    norflash_wait_busy();    /* 等待空闲 */
 
     NORFLASH_CS(0);
-    spi_read_write_byte(FLASH_SectorErase);    /* 发送写页命令 */
-    norflash_send_address(saddr);   /* 发送地址 */
+    spi_read_write_byte(FLASH_SectorErase); /* 发送写页命令 */
+    norflash_send_address(saddr);           /* 发送地址 */
     NORFLASH_CS(1);
-    norflash_wait_busy();           /* 等待扇区擦除完成 */
+    norflash_wait_busy(); /* 等待扇区擦除完成 */
 }
 
+void Test_w25q128_Flash_Run(void *pvParameters)
+{
+    uint8_t write_buf[256];
+    uint8_t read_buf[256];
+    uint32_t test_addr = 0x000000; // Test address (Sector 0)
+    uint16_t i;
+    int error_count = 0;
+    // Wait for system initialization
+    vTaskDelay(5000);
+    printf("\r\n===================================\r\n");
+    printf("       W25Q128 Flash Test Start    \r\n");
+    printf("===================================\r\n");
 
+    printf("Flash ID: 0x%X\r\n", g_norflash_type);
 
+    // Prepare test data
+    for (i = 0; i < 256; i++)
+    {
+        write_buf[i] = i;
+    }
 
+    // 1. Erase Sector
+    printf("1. Erasing Sector 0...\r\n");
+    norflash_erase_sector(0);
 
+    // Verify Erase
+    norflash_read(read_buf, test_addr, 256);
+    for (i = 0; i < 256; i++)
+    {
+        printf("   Erase  at index %d: Read 0x%02X\r\n", i, read_buf[i]);
+        if (read_buf[i] != 0xFF)
+        {
+            printf("   Erase Error at index %d: Read 0x%02X\r\n", i, read_buf[i]);
+            error_count++;
+        }
+    }
+    if (error_count == 0)
+    {
+        printf("   Erase Verified (All 0xFF).\r\n");
+    }
+    else
+    {
+        printf("   Erase Failed with %d errors.\r\n", error_count);
+    }
 
+    // 2. Write Data
+    printf("2. Writing Data...\r\n");
+    norflash_write(write_buf, test_addr, 256);
 
+    // 3. Verify Write
+    printf("3. Verifying Write...\r\n");
+    norflash_read(read_buf, test_addr, 256);
+    error_count = 0;
+    for (i = 0; i < 256; i++)
+    {
+        printf("   Write  at index %d: Read 0x%02X, Expected 0x%02X\r\n", i, read_buf[i], write_buf[i]);
+        if (read_buf[i] != write_buf[i])
+        {
+            printf("   Write Error at index %d: Read 0x%02X, Expected 0x%02X\r\n", i, read_buf[i], write_buf[i]);
+            error_count++;
+        }
+    }
 
+    if (error_count == 0)
+    {
+        printf("   Write Verification Passed!\r\n");
+    }
+    else
+    {
+        printf("   Write Verification Failed with %d errors.\r\n", error_count);
+    }
 
+    printf("===================================\r\n");
+    printf("       W25Q128 Flash Test End      \r\n");
+    printf("===================================\r\n");
 
+    while (1)
+    {
+        vTaskDelay(1000);
+    }
+}
 
-
-
-
-
-
+void Test_w25q128_Flash_Init(void)
+{
+    vTaskDelay(20 * 1000); // 等待，确保其他初始化完成
+    norflash_init();
+    xTaskCreate(Test_w25q128_Flash_Run, "Test_w25q128_Flash_Run", 256, NULL, 10, NULL);
+}

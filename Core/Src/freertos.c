@@ -201,8 +201,8 @@ void StartDefaultTask(void *argument)
 
     lcd_init();
     tp_dev.init();         // 初始化触摸屏
-    tp_adjust();           // 校准触摸屏
-    tp_save_adjust_data(); // 保存校准数据
+    //tp_adjust();           // 校准触摸屏
+   // tp_save_adjust_data(); // 保存校准数据
     lcd_clear(WHITE);      // 清除屏幕
 
     lv_init();                // lvgl初始化

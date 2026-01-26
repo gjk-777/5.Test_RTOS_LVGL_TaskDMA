@@ -14,7 +14,7 @@
 
 void Test_IAP_Flash_Run(void)
 {
-    vTaskDelay(50 * 1000); // 等待，确保其他初始化完成
+
     uint32_t write_data[TEST_DATA_LEN];
     uint32_t read_data[TEST_DATA_LEN];
     uint32_t address = TEST_FLASH_SECTOR_START;
@@ -114,5 +114,6 @@ void Test_IAP_Flash_Run(void)
 
 void Test_IAP_Flash_Init(void)
 {
+    vTaskDelay(50 * 1000); // 等待，确保其他初始化完成
     xTaskCreate(Test_IAP_Flash_Run, "Test_IAP_Flash_Run", 256, NULL, 10, NULL);
 }

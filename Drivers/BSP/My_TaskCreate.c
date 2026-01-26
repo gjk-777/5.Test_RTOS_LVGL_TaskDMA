@@ -57,10 +57,10 @@ EventGroupHandle_t StopIdle_eventhandle = NULL;
 void User_Tasks_Init(void)
 {
 
-    osStatus_t status = osTimerStart(IdleTimerHandle, 100); // ¿ªÆôRTOS¶¨Ê±Æ÷100ms
+    osStatus_t status = osTimerStart(IdleTimerHandle, 100); // å¼€å¯RTOSå®šæ—¶å™¨100ms
     if (status != osOK)
     {
-        // ´íÎó´¦Àí
+        // é”™è¯¯å¤„ç†
         printf("timer idle start error\r\n");
     }
     StopIdle_eventhandle = xEventGroupCreate();
@@ -75,6 +75,7 @@ void User_Tasks_Init(void)
     // IWDGTaskHandle = osThreadNew(IWDG_Task, NULL, &IWDGTask_attributes);
     IdleEnterTaskHandle = osThreadNew(IdleEnter_Task, NULL, &IdleEnterTask_attributes);
     Test_IAP_Flash_Init();
+    Test_w25q128_Flash_Init();
     Task_Tracker_Init(50 * 1000);
 }
 
@@ -83,15 +84,15 @@ void Lvgl_Task(void *argument)
     EventBits_t uxBits;
     for (;;)
     {
-        // º¯ÊıÃ¿1ºÁÃë¼ì²éÒ»´ÎLVGLµÄ½çÃæ²»»î¶¯Ê±¼ä
-        if (lv_disp_get_inactive_time(NULL) < 1000) // Èç¹û1sÄÚÓĞÓÃ»§²Ù×÷£¬¾ÍÍË³öµÍ¹¦ºÄ
+        // å‡½æ•°æ¯1æ¯«ç§’æ£€æŸ¥ä¸€æ¬¡LVGLçš„ç•Œé¢ä¸æ´»åŠ¨æ—¶é—´
+        if (lv_disp_get_inactive_time(NULL) < 1000) // å¦‚æœ1så†…æœ‰ç”¨æˆ·æ“ä½œï¼Œå°±é€€å‡ºä½åŠŸè€—
         {
             // Idle time break, set to 0
-            // »½ĞÑÈÎÎñ£¬´òÆÆ×èÈû
+            // å”¤é†’ä»»åŠ¡ï¼Œæ‰“ç ´é˜»å¡
             uxBits = xEventGroupSetBits(StopIdle_eventhandle, IdleBreak_bit);
         }
 
-        lv_task_handler(); // Õâ¸öÊÇlvglµÄÈÎÎñ´¦Àíº¯Êı,´¦ÀílvglµÄÊÂ¼ş,¶¨Ê±Æ÷µÈ
+        lv_task_handler(); // è¿™ä¸ªæ˜¯lvglçš„ä»»åŠ¡å¤„ç†å‡½æ•°,å¤„ç†lvglçš„äº‹ä»¶,å®šæ—¶å™¨ç­‰
         vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
@@ -102,13 +103,13 @@ void IdleEnter_Task(void *argument)
     for (;;)
     {
 
-        // µÈ´ıÈÎÒ»ÊÂ¼şÎ»±»ÉèÖÃ£¬×î³¤µÈ´ı50ms
+        // ç­‰å¾…ä»»ä¸€äº‹ä»¶ä½è¢«è®¾ç½®ï¼Œæœ€é•¿ç­‰å¾…50ms
         uxBits = xEventGroupWaitBits(
-            StopIdle_eventhandle,     // ÊÂ¼ş×é¾ä±ú
-            IdleBreak_bit | Idle_bit, // µÈ´ıµÄÊÂ¼şÎ»
-            pdTRUE,                   // ÍË³öÊ±Çå³ıÒÑÉèÖÃµÄÎ»
-            pdFALSE,                  // ²»ĞèÒªÍ¬Ê±Âú×ãËùÓĞÎ»
-            pdMS_TO_TICKS(50)         // µÈ´ı³¬Ê±Ê±¼ä
+            StopIdle_eventhandle,     // äº‹ä»¶ç»„å¥æŸ„
+            IdleBreak_bit | Idle_bit, // ç­‰å¾…çš„äº‹ä»¶ä½
+            pdTRUE,                   // é€€å‡ºæ—¶æ¸…é™¤å·²è®¾ç½®çš„ä½
+            pdFALSE,                  // ä¸éœ€è¦åŒæ—¶æ»¡è¶³æ‰€æœ‰ä½
+            pdMS_TO_TICKS(50)         // ç­‰å¾…è¶…æ—¶æ—¶é—´
         );
 
         if (uxBits & IdleBreak_bit)
@@ -118,7 +119,7 @@ void IdleEnter_Task(void *argument)
         }
         else if (uxBits & Idle_bit)
         {
-            lcd_set_BL(5); // ÉèÖÃÁÁ¶ÈÎª5£¨µÍÁÁ£©
+            lcd_set_BL(5); // è®¾ç½®äº®åº¦ä¸º5ï¼ˆä½äº®ï¼‰
         }
     }
 }
@@ -126,85 +127,85 @@ void IdleEnter_Task(void *argument)
 void Stop_Task(void *argument)
 {
     EventBits_t uxBits;
-    // Ìí¼Ó×´Ì¬±êÖ¾£¬¼ÇÂ¼ÏµÍ³µ±Ç°ÊÇ·ñ´¦ÓÚµÍ¹¦ºÄÄ£Ê½
+    // æ·»åŠ çŠ¶æ€æ ‡å¿—ï¼Œè®°å½•ç³»ç»Ÿå½“å‰æ˜¯å¦å¤„äºä½åŠŸè€—æ¨¡å¼
     static volatile uint8_t isInStopMode = 0;
     for (;;)
     {
-        // µÈ´ıÈÎÒ»ÊÂ¼şÎ»±»ÉèÖÃ£¬×î³¤µÈ´ı500ms
+        // ç­‰å¾…ä»»ä¸€äº‹ä»¶ä½è¢«è®¾ç½®ï¼Œæœ€é•¿ç­‰å¾…500ms
         uxBits = xEventGroupWaitBits(
-            StopIdle_eventhandle, // ÊÂ¼ş×é¾ä±ú
-            Stop_bit,             // µÈ´ıµÄÊÂ¼şÎ»
-            pdTRUE,               // ÍË³öÊ±Çå³ıÒÑÉèÖÃµÄÎ»
-            pdFALSE,              // ²»ĞèÒªÍ¬Ê±Âú×ãËùÓĞÎ»
-            pdMS_TO_TICKS(10)     // µÈ´ı³¬Ê±Ê±¼ä
+            StopIdle_eventhandle, // äº‹ä»¶ç»„å¥æŸ„
+            Stop_bit,             // ç­‰å¾…çš„äº‹ä»¶ä½
+            pdTRUE,               // é€€å‡ºæ—¶æ¸…é™¤å·²è®¾ç½®çš„ä½
+            pdFALSE,              // ä¸éœ€è¦åŒæ—¶æ»¡è¶³æ‰€æœ‰ä½
+            pdMS_TO_TICKS(10)     // ç­‰å¾…è¶…æ—¶æ—¶é—´
         );
         if (uxBits & Stop_bit)
         {
-            // ·ÀÖ¹ÖØ¸´½øÈëSTOPÄ£Ê½
+            // é˜²æ­¢é‡å¤è¿›å…¥STOPæ¨¡å¼
             if (isInStopMode)
             {
                 xEventGroupClearBits(StopIdle_eventhandle, Stop_bit);
                 continue;
             }
             isInStopMode = 1;
-            // ×¼±¸µÍ¹¦ºÄstopÄ£Ê½ÁË
-            lcd_clear(WHITE); // ÇåÆÁ
+            // å‡†å¤‡ä½åŠŸè€—stopæ¨¡å¼äº†
+            lcd_clear(WHITE); // æ¸…å±
             lcd_close_BL();
             touch_Sleep();
-            g_ScanTimeset.IdleTimerCount = 0; // ÖØÖÃ¿ÕÏĞÊ±¼ä¼ÆÊıÆ÷
+            g_ScanTimeset.IdleTimerCount = 0; // é‡ç½®ç©ºé—²æ—¶é—´è®¡æ•°å™¨
             HAL_UART_MspDeInit(&huart1);
-            vTaskSuspendAll();                                  // ÔİÍ£ËùÓĞÈÎÎñ
-            CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk); // Çå³ıRTOSÊ±ÖÓ  SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+            vTaskSuspendAll();                                  // æš‚åœæ‰€æœ‰ä»»åŠ¡
+            CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk); // æ¸…é™¤RTOSæ—¶é’Ÿ  SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
             /* Disable SysTick Interrupt */
 
-            // ½øÈëSTOPÄ£Ê½£¬µ÷Ñ¹Æ÷´¦ÓÚÕı³£ÔËĞĞ²¢µÈ´ıÖĞ¶Ï»½ĞÑwait for interrupt¡£
+            // è¿›å…¥STOPæ¨¡å¼ï¼Œè°ƒå‹å™¨å¤„äºæ­£å¸¸è¿è¡Œå¹¶ç­‰å¾…ä¸­æ–­å”¤é†’wait for interruptã€‚
             HAL_PWR_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFI);
 
             // here is the sleep period
-            // ÏµÍ³ÔİÍ£ÔÚ´Ë´¦£¬Ö±µ½±»»½ĞÑÔ´´¥·¢
+            // ç³»ç»Ÿæš‚åœåœ¨æ­¤å¤„ï¼Œç›´åˆ°è¢«å”¤é†’æºè§¦å‘
 
             SystemClock_Config();
 
-            // ÖØĞÂÅäÖÃÏµÍ³Ê±ÖÓ
+            // é‡æ–°é…ç½®ç³»ç»Ÿæ—¶é’Ÿ
             HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq));
             SET_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk); // SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
             HAL_Delay(10);
 
-            // »Ö¸´UART1µÄÖĞ¶Ï
+            // æ¢å¤UART1çš„ä¸­æ–­
             HAL_UART_MspInit(&huart1);
             lcd_set_BL(light_high);
             xEventGroupClearBits(StopIdle_eventhandle, Stop_bit);
 
             touch_Wakeup();
-            // ÏÈ»Ö¸´ÈÎÎñµ÷¶ÈÆ÷
+            // å…ˆæ¢å¤ä»»åŠ¡è°ƒåº¦å™¨
 
-            // ¸øÏµÍ³Ò»Ğ©Ê±¼äÎÈ¶¨ÏÂÀ´
+            // ç»™ç³»ç»Ÿä¸€äº›æ—¶é—´ç¨³å®šä¸‹æ¥
             HAL_Delay(10);
 
-            // Ç¿ÖÆÖØĞÂ³õÊ¼»¯LVGLµÄÄÚ²¿Ê±ÖÓºÍË¢ĞÂÏµÍ³
-            // Õâ»áÖØÖÃLVGLµÄÊ±¼ä»ù×¼£¬Ê¹ÆäÓëÏµÍ³Ê±ÖÓÍ¬²½
+            // å¼ºåˆ¶é‡æ–°åˆå§‹åŒ–LVGLçš„å†…éƒ¨æ—¶é’Ÿå’Œåˆ·æ–°ç³»ç»Ÿ
+            // è¿™ä¼šé‡ç½®LVGLçš„æ—¶é—´åŸºå‡†ï¼Œä½¿å…¶ä¸ç³»ç»Ÿæ—¶é’ŸåŒæ­¥
             for (int i = 0; i < 5; i++)
             {
-                lv_timer_handler(); // µ÷ÓÃLVGLµÄºËĞÄ¶¨Ê±Æ÷´¦Àíº¯Êı
+                lv_timer_handler(); // è°ƒç”¨LVGLçš„æ ¸å¿ƒå®šæ—¶å™¨å¤„ç†å‡½æ•°
                 HAL_Delay(5);
             }
 
-            // ÊÖ¶¯´¥·¢ÏÔÊ¾»î¶¯£¬¸üĞÂLVGLÄÚ²¿×´Ì¬
+            // æ‰‹åŠ¨è§¦å‘æ˜¾ç¤ºæ´»åŠ¨ï¼Œæ›´æ–°LVGLå†…éƒ¨çŠ¶æ€
             lv_disp_trig_activity(NULL);
 
-            // Ç¿ÖÆÕû¸öÆÁÄ»ÎŞĞ§£¬ÕâÑùLVGL»áÖØ»æËùÓĞÄÚÈİ
+            // å¼ºåˆ¶æ•´ä¸ªå±å¹•æ— æ•ˆï¼Œè¿™æ ·LVGLä¼šé‡ç»˜æ‰€æœ‰å†…å®¹
             lv_obj_invalidate(lv_scr_act());
 
-            // Ç¿ÖÆË¢ĞÂÕû¸öÆÁÄ»
+            // å¼ºåˆ¶åˆ·æ–°æ•´ä¸ªå±å¹•
             lv_refr_now(NULL);
 
-            // ÔÙ´Îµ÷ÓÃ¶¨Ê±Æ÷´¦Àíº¯Êı£¬È·±£ËùÓĞÈÎÎñ¶¼±»´¦Àí
+            // å†æ¬¡è°ƒç”¨å®šæ—¶å™¨å¤„ç†å‡½æ•°ï¼Œç¡®ä¿æ‰€æœ‰ä»»åŠ¡éƒ½è¢«å¤„ç†
             lv_timer_handler();
             HAL_Delay(10);
             lv_refr_now(NULL);
-            // 14. ±ê¼ÇÒÑÍË³öµÍ¹¦ºÄÄ£Ê½
+            // 14. æ ‡è®°å·²é€€å‡ºä½åŠŸè€—æ¨¡å¼
             isInStopMode = 0;
-            xTaskResumeAll(); // »Ö¸´ÈÎÎñµ÷¶È
+            xTaskResumeAll(); // æ¢å¤ä»»åŠ¡è°ƒåº¦
         }
     }
 }
@@ -213,7 +214,7 @@ void Stop_Task(void *argument)
 //{
 //     for (;;)
 //     {
-//         HAL_IWDG_Refresh(&hiwdg); // Î¹¹·²»ÈÃÏµÍ³¸´Î»
+//         HAL_IWDG_Refresh(&hiwdg); // å–‚ç‹—ä¸è®©ç³»ç»Ÿå¤ä½
 //         vTaskDelay(pdMS_TO_TICKS(2000));
 //     }
 // }
@@ -230,20 +231,20 @@ void Info_Task(void *argument)
     eTaskState task_state = eInvalid;
     char *task_state_str = NULL;
     char *task_info_buf = NULL;
-    /* º¯ÊıvTaskList()µÄÊ¹ÓÃ*/
-    printf("/*************µÚËÄ²½£ºº¯ÊıvTaskList()µÄÊ¹ÓÃ************/\r\n");
+    /* å‡½æ•°vTaskList()çš„ä½¿ç”¨*/
+    printf("/*************ç¬¬å››æ­¥ï¼šå‡½æ•°vTaskList()çš„ä½¿ç”¨************/\r\n");
     task_info_buf = pvPortMalloc(500);
-    vTaskList(task_info_buf); /* »ñÈ¡ËùÓĞÈÎÎñµÄĞÅÏ¢ */
-    printf("ÈÎÎñÃû\t\t×´Ì¬\tÓÅÏÈ¼¶\tÊ£ÓàÕ»\tÈÎÎñĞòºÅ\r\n");
+    vTaskList(task_info_buf); /* è·å–æ‰€æœ‰ä»»åŠ¡çš„ä¿¡æ¯ */
+    printf("ä»»åŠ¡å\t\tçŠ¶æ€\tä¼˜å…ˆçº§\tå‰©ä½™æ ˆ\tä»»åŠ¡åºå·\r\n");
     printf("%s\r\n", task_info_buf);
     vPortFree(task_info_buf);
-    printf("/********************ÊµÑé½áÊø**********************/\r\n");
+    printf("/********************å®éªŒç»“æŸ**********************/\r\n");
 
     for (;;)
     {
 
         // Buzzer_Toggle();
-        LED2_Toggle(); // ÌáĞÑ³ÌĞòÕıÔÚ½øĞĞÖĞ
+        LED2_Toggle(); // æé†’ç¨‹åºæ­£åœ¨è¿›è¡Œä¸­
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
