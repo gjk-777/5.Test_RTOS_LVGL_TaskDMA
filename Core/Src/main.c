@@ -105,8 +105,6 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
-  Test_IAP_Flash_Run();
-
   //  lcd_show_string(30, 50, 200, 16, 16, "STM32", RED);
   //  lcd_show_str(35, 10, 16, "Touch_Test", RED);
   //  lcd_show_str(10, 10 + 20 * 1, 16, "Happy for every", BLACK);

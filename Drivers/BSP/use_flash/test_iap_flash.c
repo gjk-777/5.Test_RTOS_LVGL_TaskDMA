@@ -106,6 +106,10 @@ void Test_IAP_Flash_Run(void)
     printf("===================================\r\n");
     printf("       IAP Flash Test End          \r\n");
     printf("===================================\r\n");
+    while (1)
+    {
+        vTaskDelay(1000);
+    }
 }
 
 void Test_IAP_Flash_Init(void)

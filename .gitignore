@@ -10,6 +10,8 @@
 *.ini
 *.d
 *.ioc
+*.htm
+*.crf
 *.uvoptx
 
 
@@ -57,6 +59,7 @@
 # Kernel Module Compile Results
 *.mod*
 *.cmd
+
 .tmp_versions/
 modules.order
 Module.symvers
@@ -67,3 +70,5 @@ dkms.conf
 /.vscode
 /build
 /ideScripts
+/MDK-ARM
+/FreeRTOSLVGL

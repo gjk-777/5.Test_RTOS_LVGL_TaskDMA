@@ -2,10 +2,10 @@
 #define __TEST_IAP_FLASH_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-
-void Test_IAP_Flash_Run(void);
+    void Test_IAP_Flash_Init(void);
 
 #ifdef __cplusplus
 }

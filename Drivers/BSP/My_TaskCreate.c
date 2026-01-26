@@ -15,7 +15,8 @@
 #include "event_groups.h"
 #include "timers.h"
 #include "gui_guider.h"
-
+#include "test_iap_flash.h"
+#include "TaskStackTracker.h"
 extern osTimerId_t IdleTimerHandle;
 extern uint8_t light_high;
 
@@ -73,6 +74,8 @@ void User_Tasks_Init(void)
     StopTaskHandle = osThreadNew(Stop_Task, NULL, &StopTask_attributes);
     // IWDGTaskHandle = osThreadNew(IWDG_Task, NULL, &IWDGTask_attributes);
     IdleEnterTaskHandle = osThreadNew(IdleEnter_Task, NULL, &IdleEnterTask_attributes);
+    Test_IAP_Flash_Init();
+    Task_Tracker_Init();
 }
 
 void Lvgl_Task(void *argument)
