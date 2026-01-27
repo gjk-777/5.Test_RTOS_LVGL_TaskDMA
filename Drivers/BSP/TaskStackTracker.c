@@ -95,7 +95,7 @@ void vgCheckTaskStack(void)
              xTaskDepth[x].free,
              xTaskDepth[x].suggest);
     }
-    printf("剩余堆内存: %d 字节\n", xPortGetFreeHeapSize());
+    printf("Remaining: %d bytes\n", xPortGetFreeHeapSize());
     printf("/************************************************/\r\n");
     // 释放之前分配的内存
     vPortFree(pxTaskStatusArray);

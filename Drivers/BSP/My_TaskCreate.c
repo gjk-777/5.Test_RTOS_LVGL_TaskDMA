@@ -139,6 +139,7 @@ void Stop_Task(void *argument)
             pdFALSE,              // 不需要同时满足所有位
             pdMS_TO_TICKS(10)     // 等待超时时间
         );
+			
         if (uxBits & Stop_bit)
         {
             // 防止重复进入STOP模式
@@ -156,7 +157,7 @@ void Stop_Task(void *argument)
             HAL_UART_MspDeInit(&huart1);
             vTaskSuspendAll();                                  // 暂停所有任务
             CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk); // 清除RTOS时钟  SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
-            /* Disable SysTick Interrupt */
+
 
             // 进入STOP模式，调压器处于正常运行并等待中断唤醒wait for interrupt。
             HAL_PWR_EnterSTOPMode(PWR_MAINREGULATOR_ON, PWR_STOPENTRY_WFI);
@@ -207,6 +208,7 @@ void Stop_Task(void *argument)
             isInStopMode = 0;
             xTaskResumeAll(); // 恢复任务调度
         }
+				
     }
 }
 
