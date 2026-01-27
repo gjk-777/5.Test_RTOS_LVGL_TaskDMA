@@ -31,39 +31,48 @@
 
 #define SFUD_DEBUG_MODE
 
-#define SFUD_USING_SFDP
-
-// #define SFUD_USING_FAST_READ
-
-#define SFUD_USING_FLASH_INFO_TABLE
+/* 1. 注释掉上方的自动配置宏 */
+// #define SFUD_USING_SFDP
+// #define SFUD_USING_FLASH_INFO_TABLE
 #define SFUD_USING_QSPI
-enum
-{
-    SFUD_W25Q64CV_DEVICE_INDEX = 0,
-    SFUD_GD25Q64B_DEVICE_INDEX = 1,
-};
 
-#define SFUD_FLASH_DEVICE_TABLE                                                  \
-    {                                                                            \
-        [SFUD_W25Q64CV_DEVICE_INDEX] = {.name = "W25Q64CV", .spi.name = "SPIX"}, \
-        [SFUD_GD25Q64B_DEVICE_INDEX] = {.name = "GD25Q64B", .spi.name = "SPIX"}, \
-    }
+/* 2. 注释掉上方的自动设备表 */
+// enum
+// {
+//     SFUD_W25Q64CV_DEVICE_INDEX = 0,
+//     SFUD_GD25Q64B_DEVICE_INDEX = 1,
+//     SFUD_W25Q128_DEVICE_INDEX = 2,
+// };
+//
+// #define SFUD_FLASH_DEVICE_TABLE                                                  \
+//     {                                                                            \
+//         [SFUD_W25Q64CV_DEVICE_INDEX] = {.name = "W25Q64CV", .spi.name = "SPIX"}, \
+//         [SFUD_GD25Q64B_DEVICE_INDEX] = {.name = "GD25Q64B", .spi.name = "SPIX"}, \
+//         [SFUD_W25Q128_DEVICE_INDEX] = {.name = "W25Q128", .spi.name = "SPI1"},   \
+//     }
 
 /*-------如果不使用就进行下面的操作，手动添加上去---------*/
 
-// #define SFUD_USING_SFDP                //不使用SFDP
-// #define SFUD_USING_FLASH_INFO_TABLE    //不使用falsh芯片信息表
+/* 3. 启用下方的配置宏 */
+// #define SFUD_USING_SFDP             // 不使用SFDP
+// #define SFUD_USING_FLASH_INFO_TABLE // 不使用falsh芯片信息表
 
-// enum
-// {
-//     SFUD_W25Q64CV_DEVICE_INDEX = 0, // 定义Flash设备在flash_table中的索引
-// };
-// // 定义并初始化flash_table中每个sfud_flash上下文对象
-// // static sfud_flash flash_table[] = SFUD_FLASH_DEVICE_TABLE;
-// #define SFUD_FLASH_DEVICE_TABLE                                          \
-// {                                                                        \
-//     [SFUD_W25Q64CV_DEVICE_INDEX] = {.name = "my_W25Q64CV",               \ 
-//       .chip={"W25Q64CV", SFUD_MF_ID_WINBOND, 0x40, 0x17, 8L*1024L*1024L, SFUD_WM_PAGE_256B, 4096, 0x20}},   \
-// }
+/* 4. 定义你的设备索引 */
+enum
+{
+    SFUD_W25Q128_DEVICE_INDEX = 0, // 只保留你用到的 W25Q128
+};
+
+/* 5. 手动填写 W25Q128 的详细参数 */
+#define SFUD_FLASH_DEVICE_TABLE                                      \
+    {                                                                \
+        [SFUD_W25Q128_DEVICE_INDEX] = {                              \
+            .name = "W25Q128",                                       \
+            .spi.name = "SPI1",                                      \
+            .chip = {                                                \
+                "W25Q128", SFUD_MF_ID_WINBOND, 0x40, 0x18,           \
+                16L * 1024L * 1024L, SFUD_WM_PAGE_256B, 4096, 0x20}, \
+        },                                                           \
+    }
 
 #endif /* _SFUD_CFG_H_ */
