@@ -74,6 +74,8 @@ dkms.conf
 /build
 /ideScripts
 /MDK-ARM
+/MDK-ARM/.vscode/uv4.log
+/MDK-ARM/.vscode/uv4.log.lock
 /FreeRTOSLVGL
 
 # Keil MDK
