@@ -1,10 +1,10 @@
 #include "mysfud.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "SPIFlash_Hal.h"
+#include "spi.h"
 
 #define SFUD_CMD_READ_DATA 0x03         /// SFUD命令-读取数据
-#define SFUD_CMD_READ_STATUS 0x05       /// SFUD命令-读取状态
+#define SFUD_CMD_READ_STATUS 0x05       /// SFUD命令-读取状态状态寄存器1
 #define SFUD_CMD_READ_ID 0x9F           /// SFUD命令-读取ID
 #define SFUD_CMD_SET_WRITE_ENABLE 0x06  /// SFUD命令-设定写入
 #define SFUD_CMD_SET_WRITE_DISABLE 0x04 /// SFUD命令-关闭写入
@@ -52,17 +52,25 @@ static bool prvProgram_Single_page(uint32_t addr, uint16_t size, const uint8_t *
 
   /* 开始写入 */
 
-  /* 页编程指令 */
-  uint8_t cmd[] = {
-      SFUD_CMD_PROGRAM_256B,
-      (addr >> 16) & 0xFF,
-      (addr >> 8) & 0xFF,
-      (addr >> 0) & 0xFF,
-  };
+  /* 1. CS 片选拉低 */
+  NORFLASH_CS(0);
 
-  SpiFlash_Hal_WriteCmd(cmd, 4, (uint8_t *)data, size);
+  /* 2. 发送页编程指令 (0x02) */
+  spi_read_write_byte(SFUD_CMD_PROGRAM_256B);
 
-  // vTaskDelay(2);
+  /* 3. 发送 3 字节地址 (高位在前) */
+  spi_read_write_byte((addr >> 16) & 0xFF);
+  spi_read_write_byte((addr >> 8) & 0xFF);
+  spi_read_write_byte((addr >> 0) & 0xFF);
+
+  /* 4. 发送数据 */
+  for (uint16_t i = 0; i < size; i++)
+  {
+    spi_read_write_byte(data[i]);
+  }
+
+  /* 5. CS 片选拉高 */
+  NORFLASH_CS(1);
 
   /* 等待flash编程完成 */
   if (!SFUD_WaitBusy(SFUD_WAIT_WRITE_LIMIT_100US))
@@ -133,22 +141,36 @@ bool SFUD_ProgramData(uint32_t addr, uint16_t size, const uint8_t *data)
 
   return result;
 }
-
+/**
+ * @brief 读取状态寄存器：常用状态寄存器1；2和3不常用
+ *
+ * @param status 状态寄存器指针
+ * @return  成功 失败
+ */
 static bool SFUD_ReadStatus(t_StatusReg *status)
 {
+  /* 1. CS 片选拉低 */
+  NORFLASH_CS(0);
+  /* 2. 发送读状态命令 */
   uint8_t cmd[] = {
       SFUD_CMD_READ_STATUS,
   };
-
-  return SpiFlash_Hal_WriteRead(cmd, 1, (uint8_t *)status, 1);
+  spi_read_write_byte(cmd[0]);
+  /* 3. 读取状态值 (发送 0xFF 空字节以产生时钟读取数据) */
+  *(uint8_t *)status = spi_read_write_byte(0xFF);
+  /* 4. CS 片选拉高 */
+  NORFLASH_CS(1);
+  return true;
 }
 
 static bool SFUD_WriteEnable(bool enable)
 {
   t_StatusReg status;
   uint8_t cmd = enable ? SFUD_CMD_SET_WRITE_ENABLE : SFUD_CMD_SET_WRITE_DISABLE;
-
-  bool res = SpiFlash_Hal_WriteDate(&cmd, 1);
+  NORFLASH_CS(0);
+  spi_read_write_byte(cmd);
+  bool res = spi_read_write_byte(0xFF);
+  NORFLASH_CS(1);
 
   /* 读取状态，判断写使能设置是否成功 */
   if (res && SFUD_ReadStatus(&status))

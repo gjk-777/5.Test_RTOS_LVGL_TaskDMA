@@ -21,6 +21,7 @@
 #include "cmsis_os.h"
 #include "can.h"
 #include "dma.h"
+#include "fatfs.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -103,6 +104,7 @@ int main(void)
   MX_TIM12_Init();
   MX_CAN1_Init();
   MX_SPI1_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
   //  lcd_show_string(30, 50, 200, 16, 16, "STM32", RED);
